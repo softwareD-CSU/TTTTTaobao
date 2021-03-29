@@ -10,10 +10,13 @@ import org.csu.mall.entity.User;
 import org.csu.mall.persistence.UserMapper;
 import org.csu.mall.service.UserService;
 import org.csu.mall.util.MD5Util;
+import org.csu.mall.util.TokenCache;
+import org.csu.mall.util.TokenUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.HttpSession;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -98,43 +101,122 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public CommonResponse<User> getUserinfo() {
-        return null;
+    public CommonResponse<User> getUserinfo(String username) {
+        User user = userMapper.selectOne(Wrappers.<User>query().eq("username",username));
+
+        //去除密码
+        user.setPassword(StringUtils.EMPTY);
+        return CommonResponse.createForSuccess(user);
     }
 
     @Override
-    public CommonResponse<String> getForgetQuestion(String username) {
-        return null;
+    public CommonResponse<String> getForgetQuestion(String username){
+        User user = userMapper.selectOne(Wrappers.<User>query().eq("username",username));
+        if(user == null){
+            return CommonResponse.createForError("用户名错误");
+        }
+        return CommonResponse.createForSuccess(user.getQuestion);
     }
 
     @Override
-    public CommonResponse<String> checkForgetQuestion(String username, String question, String answer) {
-        return null;
+    public CommonResponse<String> checkForgetQuestion(String username, String question, String answer){
+        User user = userMapper.selectOne(
+                Wrappers.<User>query().eq("username",username).eq("question",question));
+        if(user == null){
+            return CommonResponse.createForError("用户名或问题错误");
+        }
+        if(answer.equals(user.getAnswer)){
+
+            String token = TokenUtils.token(username);
+            TokenCache.setToken("checkForgetQuestionfor"+username,token);
+
+            return CommonResponse.createForSuccess(token);
+        }else {
+            return CommonResponse.createForError("问题答案错误");
+        }
+
     }
 
     @Override
     public CommonResponse<String> resetForgetPassword(String username, String passwordNew, String forgetToken) {
-        return null;
+        String token = TokenCache.getToken("checkForgetQuestionfor"+username);
+        if (token.equals(forgetToken)){
+
+            if (TokenUtils.verify(token)){
+
+                User user = userMapper.selectOne(Wrappers.<User>query().eq("username",username));
+                user.setPassword(MD5Util.md5Encrypt32Upper(passwordNew));
+
+                user.setUpdateTime(LocalDateTime.now());
+                userMapper.updateById(user);
+                return CommonResponse.createForSuccessMessage("修改密码成功");
+
+            }else {
+                return CommonResponse.createForError("token已经失效");
+            }
+
+        }else {
+            return CommonResponse.createForError("修改密码操作失效");
+        }
     }
 
     @Override
-    public CommonResponse<String> resetPassword(String passwordOld, String passwordNew) {
-        return null;
+    public CommonResponse<String> resetPassword(String username, String passwordOld, String passwordNew) {
+
+        int rows = userMapper.selectCount(Wrappers.<User>query().eq("username",username));
+        if(rows == 0){
+            return CommonResponse.createForError("用户名不存在");
+        }
+
+        //todo 密码要进行md5的处理
+        String md5Password = MD5Util.md5Encrypt32Upper(passwordOld);
+
+        User user = userMapper.selectOne(
+                Wrappers.<User>query().eq("password",md5Password));
+        if(user == null){
+            return CommonResponse.createForError("旧密码输入错误");
+        }else {
+
+            user.setPassword(MD5Util.md5Encrypt32Upper(passwordNew));
+            user.setUpdateTime(LocalDateTime.now());
+            userMapper.updateById(user);
+            return CommonResponse.createForSuccessMessage("修改密码成功");
+        }
     }
 
     @Override
     public CommonResponse<User> updateInformation(User user) {
-        return null;
+
+        int rows = userMapper.selectCount(Wrappers.<User>query().eq("email",user.getEmail()));
+        if(rows > 0){
+            return CommonResponse.createForError("邮箱已存在");
+        }
+        User update_user = userMapper.selectOne(Wrappers.<User>query().eq("username",user.getUsername));
+        if(update_user == null){
+            return CommonResponse.createForError("用户名不存在");
+        }
+        update_user.setEmail(user.getEmail);
+        update_user.setPhone(user.getPhone);
+        update_user.setQuestion(user.getQuestion);
+        update_user.setAnswer(user.getAnswer);
+        update_user.setUpdateTime(LocalDateTime.now());
+
+        userMapper.updateById(update_user);
+
+        return CommonResponse.createForSuccessMessage("更新个人信息成功");
     }
 
     @Override
-    public CommonResponse<User> getInformation() {
-        return null;
+    public CommonResponse<User> getInformation(String username) {
+        User user = userMapper.selectOne(Wrappers.<User>query().eq("username",username));
+        //去除密码
+        user.setPassword(StringUtils.EMPTY);
+        return CommonResponse.createForSuccess(user);
     }
 
     @Override
     public CommonResponse<String> logout() {
-        return null;
+        return CommonResponse.createForSuccessMessage("退出成功");
     }
 
     public static void main(String[] args) {

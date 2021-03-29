@@ -11,7 +11,7 @@ public interface UserService {
 
     CommonResponse<String> checkField(String type , String value);
 
-    CommonResponse<User> getUserinfo();
+    CommonResponse<User> getUserinfo(String username);
 
     CommonResponse<String> getForgetQuestion(String username);
 
@@ -19,11 +19,11 @@ public interface UserService {
 
     CommonResponse<String> resetForgetPassword(String username,String passwordNew, String forgetToken);
 
-    CommonResponse<String> resetPassword(String passwordOld,String passwordNew);
+    CommonResponse<String> resetPassword(String username, String passwordOld,String passwordNew);
 
     CommonResponse<User> updateInformation(User user);
 
-    CommonResponse<User> getInformation();
+    CommonResponse<User> getInformation(String username);
 
     CommonResponse<String> logout();
 }

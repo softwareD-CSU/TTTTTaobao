@@ -65,4 +65,8 @@ public class CommonResponse<T> implements Serializable {
     public static <T> CommonResponse<T> createForError(int code, String msg){
         return new CommonResponse<>(code, msg);
     }
+
+    public static <T> CommonResponse<T> createForNeedLogin(String msg){
+        return new CommonResponse<T>(ResponseCode.NEED_LOGIN.getCode(), msg);
+    }
 }
