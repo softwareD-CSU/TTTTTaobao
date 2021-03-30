@@ -55,7 +55,7 @@ public class UserController {
         if(user == null){
             return CommonResponse.createForNeedLogin("用户未登录,无法获取当前用户信息");
         }
-        return userService.getUserinfo(user.getUsername);
+        return userService.getUserinfo(user.getUsername());
     }
 
     @PostMapping("forget_get_question")
@@ -83,7 +83,7 @@ public class UserController {
         if(currentUser == null){
             return CommonResponse.createForNeedLogin("用户未登录,无法获取当前用户信息");
         }
-        return userService.resetPassword(currentUser.getUsername,passwordOld,passwordNew);
+        return userService.resetPassword(currentUser.getUsername(),passwordOld,passwordNew);
     }
 
     @PostMapping("update_information")
@@ -103,7 +103,7 @@ public class UserController {
         if(currentUser == null) {
             return CommonResponse.createForNeedLogin("用户未登录,无法获取当前用户信息,status=10,强制登录");
         }
-        return userService.getInformation(currentUser.getUsername);
+        return userService.getInformation(currentUser.getUsername());
     }
 
     @GetMapping("logout")

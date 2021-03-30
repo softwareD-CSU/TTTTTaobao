@@ -115,7 +115,7 @@ public class UserServiceImpl implements UserService {
         if(user == null){
             return CommonResponse.createForError("用户名错误");
         }
-        return CommonResponse.createForSuccess(user.getQuestion);
+        return CommonResponse.createForSuccess(user.getQuestion());
     }
 
     @Override
@@ -125,7 +125,7 @@ public class UserServiceImpl implements UserService {
         if(user == null){
             return CommonResponse.createForError("用户名或问题错误");
         }
-        if(answer.equals(user.getAnswer)){
+        if(answer.equals(user.getAnswer())){
 
             String token = TokenUtils.token(username);
             TokenCache.setToken("checkForgetQuestionfor"+username,token);
@@ -191,14 +191,14 @@ public class UserServiceImpl implements UserService {
         if(rows > 0){
             return CommonResponse.createForError("邮箱已存在");
         }
-        User update_user = userMapper.selectOne(Wrappers.<User>query().eq("username",user.getUsername));
+        User update_user = userMapper.selectOne(Wrappers.<User>query().eq("username",user.getUsername()));
         if(update_user == null){
             return CommonResponse.createForError("用户名不存在");
         }
-        update_user.setEmail(user.getEmail);
-        update_user.setPhone(user.getPhone);
-        update_user.setQuestion(user.getQuestion);
-        update_user.setAnswer(user.getAnswer);
+        update_user.setEmail(user.getEmail());
+        update_user.setPhone(user.getPhone());
+        update_user.setQuestion(user.getQuestion());
+        update_user.setAnswer(user.getAnswer());
         update_user.setUpdateTime(LocalDateTime.now());
 
         userMapper.updateById(update_user);
