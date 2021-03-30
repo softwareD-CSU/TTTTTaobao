@@ -37,7 +37,7 @@ public class UserController {
 
     @PostMapping("regitster")
     @ResponseBody
-    public CommonResponse<String> register(User user){
+    public CommonResponse<String> register(@RequestBody User user){
         return userService.register(user);
     }
 
@@ -88,11 +88,12 @@ public class UserController {
 
     @PostMapping("update_information")
     @ResponseBody
-    public CommonResponse<User> updateInformation(User user, HttpSession session) {
+    public CommonResponse<User> updateInformation(@RequestBody User user, HttpSession session) {
         User currentUser = (User)session.getAttribute(Constant.CURRENT_USER);
         if(currentUser == null) {
             return CommonResponse.createForNeedLogin("用户未登录,无法获取当前用户信息");
         }
+        user.setUsername(currentUser.getUsername());
         return userService.updateInformation(user);
     }
 
