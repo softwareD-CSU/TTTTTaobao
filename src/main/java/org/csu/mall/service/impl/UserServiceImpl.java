@@ -66,15 +66,17 @@ public class UserServiceImpl implements UserService {
         //设置用户角色
         user.setRole(Constant.Role.CUSTOMER);
         //密码的加密处理
-        user.setPassword(MD5Util.md5Encrypt32Upper(user.getPassword()));
+        String md5Password = MD5Util.md5Encrypt32Upper(user.getPassword());
+        user.setPassword(md5Password);
         user.setCreateTime(LocalDateTime.now());
         user.setUpdateTime(LocalDateTime.now());
 
-         rows = userMapper.insert(user);
+        System.out.println(user);
+        rows = userMapper.insert(user);
 
-         if( rows == 0){
-             return CommonResponse.createForError("注册失败");
-         }
+        if( rows == 0){
+            return CommonResponse.createForError("注册失败");
+        }
 
         return CommonResponse.createForSuccessMessage("注册成功");
     }
@@ -132,7 +134,7 @@ public class UserServiceImpl implements UserService {
 
             return CommonResponse.createForSuccess(token);
         }else {
-            return CommonResponse.createForError("问题答案错误");
+            return CommonResponse.createForError("答案错误");
         }
 
     }
@@ -187,18 +189,26 @@ public class UserServiceImpl implements UserService {
     @Override
     public CommonResponse<User> updateInformation(User user) {
 
-        int rows = userMapper.selectCount(Wrappers.<User>query().eq("email",user.getEmail()));
-        if(rows > 0){
-            return CommonResponse.createForError("邮箱已存在");
-        }
         User update_user = userMapper.selectOne(Wrappers.<User>query().eq("username",user.getUsername()));
         if(update_user == null){
             return CommonResponse.createForError("用户名不存在");
         }
-        update_user.setEmail(user.getEmail());
-        update_user.setPhone(user.getPhone());
-        update_user.setQuestion(user.getQuestion());
-        update_user.setAnswer(user.getAnswer());
+
+        if(StringUtils.isNotBlank(user.getEmail())) {
+            int rows = userMapper.selectCount(Wrappers.<User>query().eq("email",user.getEmail()));
+            if(rows > 0){
+                return CommonResponse.createForError("邮箱已存在");
+            }
+
+            update_user.setEmail(user.getEmail());
+        }
+        if(StringUtils.isNotBlank(user.getPhone()))
+            update_user.setPhone(user.getPhone());
+        if(StringUtils.isNotBlank(user.getQuestion()))
+            update_user.setQuestion(user.getQuestion());
+        if(StringUtils.isNotBlank(user.getAnswer()))
+            update_user.setAnswer(user.getAnswer());
+
         update_user.setUpdateTime(LocalDateTime.now());
 
         userMapper.updateById(update_user);
